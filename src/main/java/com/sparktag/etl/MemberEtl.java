@@ -42,7 +42,7 @@ public class MemberEtl {
 
         // reg / complete => i_member.t_member
         Dataset<Row> reg_complete = session.sql("select count(if(phone='null', id, null)) as reg," +
-                " count(if(phone!='null', id, null)) as complete," +
+                " count(if(phone!='null', id, null)) as complete" +
                 " from i_member.t_member");
         // order / orderAgain => i_order.t_order
         Dataset<Row> order_orderAgain = session.sql("select count(if(t.orderCount = 1, t.member_id, null)) as order," +
