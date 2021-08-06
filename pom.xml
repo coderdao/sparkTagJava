@@ -52,6 +52,11 @@
             <artifactId>lombok</artifactId>
             <version>1.18.10</version>
         </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch-hadoop</artifactId>
+            <version>6.5.3</version>
+        </dependency>
     </dependencies>
     <repositories>
         <repository>

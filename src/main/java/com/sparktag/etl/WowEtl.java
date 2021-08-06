@@ -21,9 +21,9 @@ public class WowEtl {
     // 每周环比注册数 reg count wow (week on week/  M O M)
     public static List<Reg> regCount(SparkSession session) {
 
-        ZoneId zoneId = ZoneId.systemDefault();
-        LocalDate now = LocalDate.of(2019, Month.NOVEMBER, 30);
-        Date nowDaySeven = Date.from(now.atStartOfDay(zoneId).toInstant());
+        ZoneId zoneId = ZoneId.systemDefault();                                     // 当前时区
+        LocalDate now = LocalDate.of(2019, Month.NOVEMBER, 30);     // 起始时间
+        Date nowDaySeven = Date.from(now.atStartOfDay(zoneId).toInstant());         //
         Date nowDayOne = DateUtil.addDay(nowDaySeven, -7);
         Date lastDaySeven = DateUtil.addDay(nowDayOne, -7);
 
