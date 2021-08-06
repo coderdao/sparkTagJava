@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.elasticsearch.hadoop.cfg.ConfigurationOptions;
 import org.elasticsearch.spark.rdd.api.java.JavaEsSpark;
 
 import java.io.Serializable;
@@ -17,6 +18,8 @@ public class EsDemo {
         SparkConf conf = new SparkConf()
                 .setMaster("local[*]")
                 .setAppName("es_demo")
+                .set(ConfigurationOptions.ES_NET_HTTP_AUTH_USER, "password")
+                .set(ConfigurationOptions.ES_NET_HTTP_AUTH_PASS, "password")
                 .set("es.nodes", "namenode")
                 .set("es.index.auto.create", "true"); // 自动创建不存在 index 索引
 
