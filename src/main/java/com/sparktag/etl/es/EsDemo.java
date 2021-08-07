@@ -44,6 +44,9 @@ public class EsDemo {
         JavaEsSpark.saveToEs(userJavaRDD, "/user/_doc");
         */
 
+        /** ============================== 插入数据 ============================== */
+        /**
+        // 第一种查询
         JavaPairRDD<String, Map<String, Object>> pairRDD = JavaEsSpark.esRDD(jsc, "/user/_doc");
         Map<String, Map<String, Object>> stringMapMap = pairRDD.collectAsMap();
         System.out.println("原始数据 ============ "+stringMapMap);
@@ -60,7 +63,15 @@ public class EsDemo {
         });
 
         List<User> collect = rdd.collect();
-        System.out.println("原始数据 ============ "+collect);
+        System.out.println("遍历生成数据 ============ "+collect);
+        */
+
+
+        // dsl 查询
+        String queryStrinf = "{\"query\":{\"bool\":{\"should\":[{\"match\":{\"name\":\"Eric\"}},{\"range\":{\"FIELD\":{\"gte\":30,\"lte\":40}}}]}}}";
+        JavaEsSpark.esJsonRDD(jsc, "/user/_doc", queryStrinf);
+        Map<String, Map<String, Object>> stringMapMap = pairRDD.collectAsMap();
+        System.out.println("原始数据 ============ "+stringMapMap);
     }
 
     @Data
