@@ -54,13 +54,9 @@
         </dependency>
         <dependency>
             <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch-spark_2.11</artifactId>
-            <version>2.4.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch-hadoop</artifactId>
             <version>6.5.3</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <repositories>
