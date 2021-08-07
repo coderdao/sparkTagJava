@@ -45,9 +45,12 @@ public class EsDemo {
         */
 
         /** ============================== 插入数据 ============================== */
+
+        JavaPairRDD<String, Map<String, Object>> pairRDD = JavaEsSpark.esRDD(jsc, "/user/_doc");
+
         /**
         // 第一种查询
-        JavaPairRDD<String, Map<String, Object>> pairRDD = JavaEsSpark.esRDD(jsc, "/user/_doc");
+
         Map<String, Map<String, Object>> stringMapMap = pairRDD.collectAsMap();
         System.out.println("原始数据 ============ "+stringMapMap);
 
