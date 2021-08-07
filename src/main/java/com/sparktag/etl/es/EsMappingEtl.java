@@ -18,34 +18,39 @@ public class EsMappingEtl {
     }
 
     private static void etl(SparkSession session) {
-        Dataset<Row> member = session.sql("select id as memberId, phone, sex, member_channel as channel, mp_open_id as subUpenId," +
-                " address_default_id as address, date_format(create_time, 'yyyy-MM-dd') as regTime" +
+        Dataset<Row> member = session.sql("select id as memberId,phone,sex,member_channel as channel,mp_open_id as subOpenId," +
+                " address_default_id as address,date_format(create_time,'yyyy-MM-dd') as regTime" +
                 " from i_member.t_member");
-        Dataset<Row> order_commodity = session.sql( "select o.member as memberId," +
-                " date_format(max(o.create_time), 'yyyy-MM-dd ') as orderTime, " +
-                " count(o.order_id) as orderCount, " +
+
+        // order_commodity collect_list -- group_concat [1,2,3,4,5]
+        Dataset<Row> order_commodity = session.sql("select o.member_id as memberId," +
+                " date_format(max(o.create_time),'yyyy-MM-dd') as orderTime," +
+                " count(o.order_id) as orderCount," +
                 " collect_list(DISTINCT oc.commodity_id) as favGoods, " +
-                " sum(o.pay_money) as orderMoney " +
-                " from i order.t_order as o left join i_order.t_order_commodity as oc" +
+                " sum(o.pay_price) as orderMoney " +
+                " from i_order.t_order as o left join i_order.t_order_commodity as oc" +
                 " on o.order_id = oc.order_id group by o.member_id");
 
-        Dataset<Row> freeCoupon = session.sql( "select member_id as memberId, " +
-                " date_format(create_time, 'yyyy-MM-dd ' ) as freeCouponTime " +
+        Dataset<Row> freeCoupon = session.sql("select member_id as memberId, " +
+                " date_format(create_time,'yyyy-MM-dd') as freeCouponTime " +
                 " from i_marketing.t_coupon_member where coupon_id = 1");
-        Dataset<Row> couponTimes = session.sql( "select member_id as memberTd," +
-                " collect_list(date_format(create_time, ' yyyy-MN-dd ' )) as couponTimes" +
-                " from i_marketing.t_coupon_member where coupon_id !=1 group by member_id");
+
+        Dataset<Row> couponTimes = session.sql("select member_id as memberId," +
+                " collect_list(date_format(create_time,'yyyy-MM-dd')) as couponTimes" +
+                "  from i_marketing.t_coupon_member where coupon_id !=1 group by member_id");
+
         Dataset<Row> chargeMoney = session.sql("select cm.member_id as memberId , sum(c.coupon_price/2) as chargeMoney " +
                 " from i_marketing.t_coupon_member as cm left join i_marketing.t_coupon as c " +
-                " on cm.coupon id = c.id where cm.coupon_channel = 1 group by cm.member_id");
+                " on cm.coupon_id = c.id where cm.coupon_channel = 1 group by cm.member_id");
 
-        Dataset<Row> overTime = session.sql( "select (to_unix_timestamp(max(arrive_time)) - (to_unix_timestamp(max(pick_time)) " +
+        Dataset<Row> overTime = session.sql("select (to_unix_timestamp(max(arrive_time)) - to_unix_timestamp(max(pick_time))) " +
                 " as overTime, member_id as memberId " +
                 " from i_operation.t_delivery group by member_id");
-        Dataset<Row> feedback = session.sql( "selec fb.feedback_type as feedback, fb.member_id as memberId" +
+
+        Dataset<Row> feedback = session.sql("select fb.feedback_type as feedback,fb.member_id as memberId" +
                 " from i_operation.t_feedback as fb " +
-                " left join（select max(id） as mid , member_id as memberId " +
-                " from i_operation.t_feedback group by member_id)as t " +
+                " left join (select max(id) as mid,member_id as memberId " +
+                " from i_operation.t_feedback group by member_id) as t " +
                 " on fb.id = t.mid");
 
         // 每个 dataset 注册一个临时表,
@@ -58,15 +63,15 @@ public class EsMappingEtl {
         feedback.registerTempTable( "feedback");
 
         // 每个临时表进行 left join
-        Dataset<Row> result = session.sql( "select m.* , .orderCount , o.orderTime , o.orderWoney,o.favGoods" +
-                " fb.freeCouponTime,ct.couponTimes，cm.chargeMoney,ot.overTime,f.feedBack" +
-                        " from member as m" +
-                        " left ioin oc as o on m.memberId = o.memberId " +
-                        " left join freeCoupon as fb on m.memberId = fb.memberId " +
-                        " left join couponTimes as ct on m.memberId = ct.memberId " +
-                        " left join chargeMoney as cm on m.memberId = cm.memberId " +
-                        " left join overTime as ot on m.memberId = ot.memberId " +
-                        " left join feedback as f on m.memberId = f.memberId ");
+        Dataset<Row> result = session.sql("select m.*,o.orderCount,o.orderTime,o.orderMoney,o.favGoods," +
+                " fb.freeCouponTime,ct.couponTimes, cm.chargeMoney,ot.overTime,f.feedBack" +
+                " from member as m " +
+                " left join oc as o on m.memberId = o.memberId " +
+                " left join freeCoupon as fb on m.memberId = fb.memberId " +
+                " left join couponTimes as ct on m.memberId = ct.memberId " +
+                " left join chargeMoney as cm on m.memberId = cm.memberId " +
+                " left join overTime as ot on m.memberId = ot.memberId " +
+                " left join feedback as f on m.memberId = f.memberId ");
         JavaEsSparkSQL.saveToEs(result, "/tag/_doc");
 
     }

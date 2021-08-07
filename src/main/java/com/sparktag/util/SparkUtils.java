@@ -32,13 +32,31 @@ public class SparkUtils {
         if (sessionPool.get() != null) {
             return sessionPool.get();
         }
-        SparkSession session = SparkSession.builder().appName("member etl")
+/*
+
+        SparkSession session = SparkSession.builder()
+                .appName("member etl")
                 .master("local[*]")
                 .config("es.nodes", "namenode")
                 .config("es.port", "9200")
                 .config("es.index.auto.create", "false")
                 .enableHiveSupport()
                 .getOrCreate();
+*/
+
+        SparkConf conf = new SparkConf()
+                .setMaster("local[*]")
+                .setAppName("member_etl")
+                .set("es.nodes", "192.168.20.157")
+                .set("es.port", "9200")
+                .set("es.nodes.wan.only", "true")
+                .set("es.index.auto.create", "true"); // 自动创建不存在 index 索引
+
+        SparkSession session = SparkSession.builder()
+                .config(conf)
+                .enableHiveSupport()
+                .getOrCreate();
+
         sessionPool.set(session);
         return session;
 
